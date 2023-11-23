@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+    <script src="{% static '/js/payment.js' %}"></script>
+
+    <style type="text/css" media="screen">
+        input.invalid {
+            border: 2px solid red;
+        }
+        
+        .validation.failed:after {
+            color: red;
+            content: 'Validation failed';
+        }
+        
+        .validation.passed:after {
+            color: green;
+            content: 'Validation passed';
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <col-md-4></col-md-4>
+            <col-md-4>
+                <form novalidate autocomplete="on" method="post" class="form-group">
+                    <h2>Card number formatting</h2>
+
+                    <input type="text" class="cc-number" pattern="\d*" x-autocompletetype="cc-number" placeholder="Card number" required class="form-control">
+
+                    <h2>Expiry formatting</h2>
+
+                    <input type="text" class="cc-exp" pattern="\d*" x-autocompletetype="cc-exp" placeholder="Expires MM/YY" required maxlength="9" class="form-control">
+
+                    <h2>CVC formatting</h2>
+                    <input type="text" class="cc-cvc" pattern="\d*" x-autocompletetype="cc-csc" placeholder="Security code" required autocomplete="off" class="form-control">
+
+                    <h2>Restrict Numeric</h2>
+
+                    <input type="text" data-numeric class="form-control">
+
+                    <h2 class="validation"></h2>
+
+                    <button type="submit">Submit</button>
+                </form>
+            </col-md-4>
+            <col-md-4></col-md-4>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+
+    <script>
+        var J = Payment.J,
+            numeric = document.querySelector('[data-numeric]'),
+            number = document.querySelector('.cc-number'),
+            exp = document.querySelector('.cc-exp'),
+            cvc = document.querySelector('.cc-cvc'),
+            validation = document.querySelector('.validation');
+
+        Payment.restrictNumeric(numeric);
+        Payment.formatCardNumber(number, 16);
+        Payment.formatCardExpiry(exp);
+        Payment.formatCardCVC(cvc);
+
+        document.querySelector('form').onsubmit = function(e) {
+            e.preventDefault();
+            J.toggleClass(document.querySelectorAll('input'), 'invalid');
+            J.removeClass(validation, 'passed failed');
+
+            var cardType = Payment.fns.cardType(J.val(number));
+
+            J.toggleClass(number, 'invalid', !Payment.fns.validateCardNumber(J.val(number)));
+            J.toggleClass(exp, 'invalid', !Payment.fns.validateCardExpiry(Payment.cardExpiryVal(exp)));
+
+            J.toggleClass(cvc, 'invalid', !Payment.fns.validateCardCVC(J.val(cvc), cardType));
+
+            if (document.querySelectorAll('.invalid').length) {
+                J.addClass(validation, 'failed');
+            } else {
+                J.addClass(validation, 'passed');
+            }
+        }
+    </script>
+</body>
+
+</html>
